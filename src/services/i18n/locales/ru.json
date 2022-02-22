@@ -1,0 +1,26 @@
+{
+  "scenes": {
+    "start": {
+      "welcome": "Добро пожаловать!"
+    },
+    "language": {
+      "choose_lang": "Выберите язык / Choose language",
+      "en": "English",
+      "ru": "Русский"
+    }
+  },
+  "options": {
+    "what_next": "✋ Ну привет! Чем могу помочь?",
+    "something_went_wrong": "❌ Ошибочка вышла.. Попробуй еще раз"
+  },
+  "keyboards": {
+    "back_keyboard": {
+      "back": "◀️ Назад"
+    },
+    "main_keyboard": {
+      "info": "❓ Информация",
+      "manage_subscription": "⚙ Моя подписка",
+      "manage_channel": "⚙ Мои каналы"
+    }
+  }
+}

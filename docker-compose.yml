@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  server:
+    build:
+      context: ./
+      dockerfile: Dockerfile_dev
+    restart: always
+    environment:
+      NODE_ENV: "development"
+      PORT: 5000
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: alfex
+    ports:
+      - "3306:3306"
+    volumes:
+      - "getaway_ws_server_mysql_database:/var/lib/mysql"
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1 -u root --password=$$MYSQL_ROOT_PASSWORD
+volumes:
+  getaway_ws_server_mysql_database:
+    driver: local
