@@ -10,17 +10,11 @@
     }
   },
   "options": {
-    "what_next": "✋ Hey, what are you up to?",
-    "something_went_wrong": "❌ Something went wrong. Try one more time.."
+    "what_next": ":raised_hand: Hey, what are you up to?",
+    "something_went_wrong": ":x: Something went wrong. Try one more time.."
   },
-  "keyboards": {
-    "back_keyboard": {
-      "back": "◀️ Back"
-    },
-    "main_keyboard": {
-      "info": "❓ Info",
-      "manage_subscription": "⚙ My subscription",
-      "manage_channels": "⚙ My channels"
-    }
+  "buttons": {
+    "back": ":arrow_left: Back",
+    "check_order": "Check"
   }
 }

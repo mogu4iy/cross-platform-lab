@@ -1,13 +1,9 @@
 import { Scenes } from 'telegraf';
 import { SceneContext } from '../../types/telegraf';
 import config from '../../config';
-import {
-  enterController,
-  leaveController,
-} from './handlers';
-import { messageController } from './handlers';
+import { messageController, enterController, leaveController } from './handlers';
 
-const scene = new Scenes.BaseScene<SceneContext>(config.TELEGRAM.SCENE.MANAGE_CHANNELS);
+const scene = new Scenes.BaseScene<SceneContext>(config.TELEGRAM.SCENE.MANAGE_CHANNEL);
 
 scene.enter(enterController);
 scene.leave(leaveController);

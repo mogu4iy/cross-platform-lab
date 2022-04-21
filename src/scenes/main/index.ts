@@ -6,7 +6,6 @@ import {
   leaveController,
   messageController
 } from './handlers';
-import Console from 'console';
 
 const scene = new Scenes.BaseScene<SceneContext>(config.TELEGRAM.SCENE.MAIN);
 

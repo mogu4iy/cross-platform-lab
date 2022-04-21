@@ -8,10 +8,11 @@ import languageScene from './scenes/language';
 import mainScene from './scenes/main';
 import infoScene from './scenes/info';
 import manageSubscriptionScene from './scenes/manageSubscription';
-import manageChannelsScene from './scenes/manageChannels';
+import manageChannelScene from './scenes/manageChannel';
 
 import { SceneContext } from './types/telegraf';
 import { initI18n } from './services/i18n';
+import { getI18nLanguageStoreByKeys } from './services/i18nLanguageStore';
 
 const stage = new Scenes.Stage<SceneContext>([
   startScene,
@@ -19,7 +20,7 @@ const stage = new Scenes.Stage<SceneContext>([
   mainScene,
   infoScene,
   manageSubscriptionScene,
-  manageChannelsScene
+  manageChannelScene
 ], {
   ttl: 60
 });
@@ -28,31 +29,38 @@ telegraf.use(session());
 telegraf.use(stage.middleware());
 telegraf.use(async (ctx, next) => {
   if (!ctx.session.i18n) {
-    ctx.session.i18n = await initI18n();
+    if ('chatMember' in ctx && ctx.chatMember && 'from' in ctx.chatMember && ctx.chatMember.from && 'language_code' in ctx.chatMember.from && ctx.chatMember.from.language_code) {
+      const defaultLanguage = getI18nLanguageStoreByKeys({ key: ctx.chatMember.from.language_code });
+      if (defaultLanguage.length > 0) {
+        ctx.session.i18n = await initI18n(defaultLanguage[0].key);
+        return next();
+      }
+    }
+    ctx.session.i18n = await initI18n(null);
   }
   return next();
 });
-telegraf.start(async (ctx) => {
-  const welcomeMessage = await ctx.reply(ctx.session.i18n.__('scenes.start.welcome'));
-  setTimeout(() => {
-    ctx.deleteMessage(welcomeMessage.message_id);
+
+telegraf.command('start', async (ctx) => {
+  if (!ctx.session.__scenes.current) {
     ctx.scene.enter(config.TELEGRAM.SCENE.START, {
+      ...ctx.session.__scenes.state,
       sceneHistory: []
     });
-  }, 1000);
-});
-telegraf.on('message', async (ctx) => {
-  if (!ctx.session.__scenes.current) {
-    const welcomeMessage = await ctx.reply(ctx.session.i18n.__('scenes.start.welcome'));
-    setTimeout(() => {
-      ctx.deleteMessage(welcomeMessage.message_id);
-      ctx.scene.enter(config.TELEGRAM.SCENE.START, {
-        sceneHistory: []
-      });
-    }, 1000);
   }
   await ctx.deleteMessage(ctx.message.message_id);
 });
+
+telegraf.on('message', async (ctx) => {
+  if (!ctx.session.__scenes.current) {
+    ctx.scene.enter(config.TELEGRAM.SCENE.START, {
+      ...ctx.session.__scenes.state,
+      sceneHistory: []
+    });
+  }
+  await ctx.deleteMessage(ctx.message.message_id);
+});
+
 telegraf.catch((error: any) => {
   Console.log('Bot error : ', error);
 });

@@ -10,17 +10,11 @@
     }
   },
   "options": {
-    "what_next": "✋ Ну привет! Чем могу помочь?",
-    "something_went_wrong": "❌ Ошибочка вышла.. Попробуй еще раз"
+    "what_next": ":raised_hand: Ну привет! Чем могу помочь?",
+    "something_went_wrong": ":x: Ошибочка вышла.. Попробуй еще раз"
   },
-  "keyboards": {
-    "back_keyboard": {
-      "back": "◀️ Назад"
-    },
-    "main_keyboard": {
-      "info": "❓ Информация",
-      "manage_subscription": "⚙ Моя подписка",
-      "manage_channel": "⚙ Мои каналы"
-    }
+  "buttons": {
+    "back": ":arrow_left: Назад",
+    "check_order": "Проверить"
   }
 }

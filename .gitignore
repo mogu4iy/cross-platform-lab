@@ -2,3 +2,12 @@ dist
 node_modules
 
 .env
+
+.idea
+.vscode
+
+*.log
+*.sql
+*.sqlite
+*.json.swp
+*.json.save

@@ -1,4 +1,3 @@
-import Console from 'console';
 import {
   handlerWrapper,
   TDataFunctionType,
@@ -6,6 +5,8 @@ import {
 } from '../../utils/errors';
 import { SceneContext } from '../../types/telegraf';
 import config from '../../config';
+import db from '../../db/models';
+import { getLibTelegramChatTypeStoreByKeys } from '../../services/libTelegramChatTypeStore';
 
 const enterDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
   return {};
@@ -13,15 +14,41 @@ const enterDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
 
 const enterPromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, ctx, next }) => {
   ctx.scene.session.removeMessage = [];
-  const user = null;
-  if (!user) {
-    return await ctx.scene.enter(config.TELEGRAM.SCENE.LANGUAGE, {
+  if (!('chat' in ctx && ctx.chat && 'id' in ctx.chat && ctx.chat.id)) {
+    await ctx.reply('Server error');
+  }
+  if ('chat' in ctx && ctx.chat && 'id' in ctx.chat && ctx.chat.id && 'type' in ctx.chat && ctx.chat.type) {
+    const userDefaults: { [Key: string]: any } = {};
+    const chatType = getLibTelegramChatTypeStoreByKeys({ key: ctx.chat.type });
+    if (chatType.length === 0) {
+      throw new Error(`lib_telegram_chat_type with key '${ctx.chat.type}' is absent is store`);
+    }
+    userDefaults.lib_telegram_chat_type_id = chatType[0].id;
+    // @ts-ignore
+    const [telegramUser, created] = await db.telegram_user.findOrCreate({
+      raw: true,
+      logging: false,
+      where: {
+        telegram_chat_id: ctx.chat.id
+      },
+      defaults: {
+        telegram_chat_id: ctx.chat.id,
+        lib_telegram_chat_type_id: chatType[0].id
+      }
+    });
+    if (!telegramUser.i18n_language_id) {
+      return await ctx.scene.enter(config.TELEGRAM.SCENE.LANGUAGE, {
+        ...ctx.session.__scenes.state,
+        sceneHistory: [...ctx.session.__scenes.state.sceneHistory, config.TELEGRAM.SCENE.START],
+        telegram_chat_id: telegramUser.id
+      });
+    }
+    return await ctx.scene.enter(config.TELEGRAM.SCENE.MAIN, {
+      ...ctx.session.__scenes.state,
       sceneHistory: [...ctx.session.__scenes.state.sceneHistory, config.TELEGRAM.SCENE.START],
+      telegram_chat_id: telegramUser.id
     });
   }
-  return await ctx.scene.enter(config.TELEGRAM.SCENE.MAIN, {
-    sceneHistory: [...ctx.session.__scenes.state.sceneHistory, config.TELEGRAM.SCENE.START]
-  });
 };
 
 export const enterController = handlerWrapper({

@@ -1,13 +1,14 @@
+import emoji from 'node-emoji';
+import { SceneContext } from '../../types/telegraf';
+import config from '../../config';
 import {
   handlerWrapper,
   TDataFunctionType,
   TPromiseHandlerType
 } from '../../utils/errors';
-import { SceneContext } from '../../types/telegraf';
-import Console from 'console';
-import config from '../../config';
-import { chooseLanguageKeyboard } from './keyboards';
-import { ACTIONS } from './actions';
+import { ACTIONS } from '../../actions';
+import { backKeyboard, languageKeyboard } from '../../keyboards';
+import { smthWentWrongMessage } from '../../messages';
 
 const enterDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
   return {};
@@ -15,9 +16,10 @@ const enterDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
 
 const enterPromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, ctx, next }) => {
   ctx.scene.session.removeMessage = [];
-  const keyboard = chooseLanguageKeyboard(ctx);
-  const chooseLangKeyboardMessage = await ctx.reply(ctx.session.i18n.__('scenes.language.choose_lang'), keyboard);
-  ctx.scene.session.removeMessage.push(chooseLangKeyboardMessage.message_id);
+  const titleMessage = await ctx.reply(emoji.emojify(ctx.session.i18n.__('scene_language:title')), backKeyboard(ctx));
+  ctx.scene.session.removeMessage.push(titleMessage.message_id);
+  const keyboardMessage = await ctx.reply(emoji.emojify(ctx.session.i18n.__('scene_language:description')), languageKeyboard(ctx));
+  ctx.scene.session.removeMessage.push(keyboardMessage.message_id);
 };
 
 export const enterController = handlerWrapper({
@@ -25,35 +27,40 @@ export const enterController = handlerWrapper({
   promiseHandler: enterPromiseHandler
 });
 
-const chooseLanguageDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
+const messageDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
   return {};
 };
 
-const chooseLanguagePromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, ctx, next }) => {
-  if ('callbackQuery' in ctx && ctx.callbackQuery) {
-    const ctxData = ctx.callbackQuery;
-    if ('data' in ctxData && ctxData.data) {
-      const langData = ACTIONS.choose_lang.parse(ctxData.data);
-      if ('lang' in langData && langData.lang) {
-        ctx.session.i18n.setLocale(langData.lang);
+const messagePromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, ctx, next }) => {
+  if ('message' in ctx.update) {
+    ctx.scene.session.removeMessage.push(ctx.update.message.message_id);
+    if ('text' in ctx.update.message) {
+      switch (ctx.update.message.text) {
+        case emoji.emojify(ctx.session.i18n.__(`button:back`)):
+          const sceneHistory = ctx.session.__scenes.state.sceneHistory;
+          const backScene = sceneHistory.length > 0 ? sceneHistory[sceneHistory.length - 1] : config.TELEGRAM.SCENE.MAIN;
+          const newSceneHistory = sceneHistory.length > 0 ? sceneHistory.slice(0, sceneHistory.length - 1) : [];
+          await ctx.scene.enter(backScene, {
+            ...ctx.session.__scenes.state,
+            sceneHistory: newSceneHistory
+          });
+          break;
+        default:
+          if (ctx.update.message.text === '/start') {
+            await ctx.scene.enter(config.TELEGRAM.SCENE.START, {
+              ...ctx.session.__scenes.state,
+              sceneHistory: []
+            });
+            break;
+          }
       }
-      return await ctx.scene.enter(config.TELEGRAM.SCENE.MAIN, {
-        sceneHistory: [...ctx.session.__scenes.state.sceneHistory, config.TELEGRAM.SCENE.LANGUAGE]
-      });
     }
   }
-  await ctx.reply('Something went wrong');
-  const sceneHistory = ctx.session.__scenes.state.sceneHistory;
-  const backScene = sceneHistory.length > 0 ? sceneHistory[sceneHistory.length - 1] : config.TELEGRAM.SCENE.MAIN;
-  const newSceneHistory = sceneHistory.length > 0 ? sceneHistory.slice(sceneHistory.length - 1) : [];
-  return await ctx.scene.enter(backScene, {
-    sceneHistory: newSceneHistory
-  });
 };
 
-export const chooseLanguageController = handlerWrapper({
-  dataFunction: chooseLanguageDataFunction,
-  promiseHandler: chooseLanguagePromiseHandler
+export const messageController = handlerWrapper({
+  dataFunction: messageDataFunction,
+  promiseHandler: messagePromiseHandler
 });
 
 const leaveDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
@@ -71,4 +78,36 @@ const leavePromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, ct
 export const leaveController = handlerWrapper({
   dataFunction: leaveDataFunction,
   promiseHandler: leavePromiseHandler
+});
+
+const chooseLanguageDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
+  return {};
+};
+
+const chooseLanguagePromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, ctx, next }) => {
+  if ('callbackQuery' in ctx && ctx.callbackQuery) {
+    const ctxData = ctx.callbackQuery;
+    if ('data' in ctxData && ctxData.data) {
+      const langData = ACTIONS.choose_language.parse(ctxData.data);
+      if ('action' in langData && langData.action) {
+        ctx.session.i18n.setLocale(langData.action);
+      }
+      return await ctx.scene.enter(config.TELEGRAM.SCENE.MAIN, {
+        ...ctx.session.__scenes.state,
+        sceneHistory: [...ctx.session.__scenes.state.sceneHistory, config.TELEGRAM.SCENE.LANGUAGE]
+      });
+    }
+  }
+  await ctx.reply(smthWentWrongMessage(ctx));
+  const sceneHistory = ctx.session.__scenes.state.sceneHistory;
+  const backScene = sceneHistory.length > 0 ? sceneHistory[sceneHistory.length - 1] : config.TELEGRAM.SCENE.MAIN;
+  const newSceneHistory = sceneHistory.length > 0 ? sceneHistory.slice(sceneHistory.length - 1) : [];
+  return await ctx.scene.enter(backScene, {
+    sceneHistory: newSceneHistory
+  });
+};
+
+export const chooseLanguageController = handlerWrapper({
+  dataFunction: chooseLanguageDataFunction,
+  promiseHandler: chooseLanguagePromiseHandler
 });

@@ -80,13 +80,13 @@ export const handlerWrapper = <TContext extends Context>({
   };
 };
 
+export type {
+  TDataFunctionType,
+  TPromiseHandlerType
+};
+
 export default {
   CustomError,
   handleError,
   handlerWrapper
-};
-
-export type {
-  TDataFunctionType,
-  TPromiseHandlerType
 };

@@ -4,7 +4,7 @@ export interface IServerConfig {
 
 export function ServerConfig(): IServerConfig {
   return {
-    PORT: Number(process.env.PORT) ?? 5000,
+    PORT: Number(process.env.PORT) ?? 5000
   };
 }
 

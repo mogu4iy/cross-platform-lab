@@ -1,12 +1,12 @@
-import Console from 'console';
+import emoji from 'node-emoji';
+import { SceneContext } from '../../types/telegraf';
+import config from '../../config';
 import {
   handlerWrapper,
   TDataFunctionType,
   TPromiseHandlerType
 } from '../../utils/errors';
-import { SceneContext } from '../../types/telegraf';
-import config from '../../config';
-import { mainKeyboard } from './keyboards';
+import { backKeyboard } from '../../keyboards';
 
 const enterDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
   return {};
@@ -14,8 +14,10 @@ const enterDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
 
 const enterPromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, ctx, next }) => {
   ctx.scene.session.removeMessage = [];
-  const keyboardMessage = await ctx.reply(ctx.session.i18n.__('keyboards.main_keyboard.manage_channels'), mainKeyboard(ctx));
-  ctx.scene.session.removeMessage.push(keyboardMessage.message_id);
+  const titleMessage = await ctx.reply(emoji.emojify(ctx.session.i18n.__('scene_manage_subscription:title')), backKeyboard(ctx));
+  ctx.scene.session.removeMessage.push(titleMessage.message_id);
+  // const keyboardMessage = await ctx.reply(emoji.emojify(ctx.session.i18n.__('scene_info:description')), languageKeyboard(ctx));
+  // ctx.scene.session.removeMessage.push(keyboardMessage.message_id);
 };
 
 export const enterController = handlerWrapper({
@@ -31,19 +33,20 @@ const messagePromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, 
   if ('message' in ctx.update) {
     ctx.scene.session.removeMessage.push(ctx.update.message.message_id);
     if ('text' in ctx.update.message) {
-      Console.log(ctx.update.message.text, ctx.update.message.message_id, '   MANAGE_SUBSCRIPTION');
       switch (ctx.update.message.text) {
-        case ctx.session.i18n.__(`keyboards.back_keyboard.back`):
+        case emoji.emojify(ctx.session.i18n.__(`button:back`)):
           const sceneHistory = ctx.session.__scenes.state.sceneHistory;
-          const backScene = sceneHistory.length > 0 ? sceneHistory[sceneHistory.length - 1] : config.TELEGRAM.SCENE.MANAGE_SUBSCRIPTION;
-          const newSceneHistory = sceneHistory.length > 0 ? sceneHistory.slice(sceneHistory.length - 1) : [];
+          const backScene = sceneHistory.length > 0 ? sceneHistory[sceneHistory.length - 1] : config.TELEGRAM.SCENE.MAIN;
+          const newSceneHistory = sceneHistory.length > 0 ? sceneHistory.slice(0, sceneHistory.length - 1) : [];
           await ctx.scene.enter(backScene, {
+            ...ctx.session.__scenes.state,
             sceneHistory: newSceneHistory
           });
           break;
         default:
           if (ctx.update.message.text === '/start') {
             await ctx.scene.enter(config.TELEGRAM.SCENE.START, {
+              ...ctx.session.__scenes.state,
               sceneHistory: []
             });
             break;
@@ -63,7 +66,6 @@ const leaveDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
 };
 
 const leavePromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, ctx, next }) => {
-  Console.log(ctx.scene.session.removeMessage);
   if (Array.isArray(ctx.scene.session.removeMessage)) {
     for (const messageId of ctx.scene.session.removeMessage) {
       await ctx.deleteMessage(messageId);

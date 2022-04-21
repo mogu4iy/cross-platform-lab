@@ -4,28 +4,62 @@ services:
   server:
     build:
       context: ./
-      dockerfile: Dockerfile_dev
-    restart: always
+      dockerfile: DockerfileLocal
+    tty: true
+    restart: unless-stopped
     environment:
-      NODE_ENV: "development"
-      PORT: 5000
-    ports:
-      - "5000:5000"
+      NODE_ENV: "docker"
+      SERVER_ID: 1
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      DB_DATABASE: alfex
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_CONNECTION: mysql
+      RABBIT_MQ_BASE_URL: amqp://admin:admin@rabbitmq/stockmoon
     depends_on:
       db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
   db:
     image: mysql:5.7
-    restart: always
+    tty: true
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: alfex
+      MYSQL_DATABASE: stockmoon
     ports:
       - "3306:3306"
     volumes:
-      - "getaway_ws_server_mysql_database:/var/lib/mysql"
+      - "telegram_service_mysql_database:/var/lib/mysql"
     healthcheck:
       test: mysqladmin ping -h 127.0.0.1 -u root --password=$$MYSQL_ROOT_PASSWORD
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_VHOST: stockmoon
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - "./rabbitmq-definitions.json:/etc/rabbitmq/definitions.json"
+      - "./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf"
+      - "telegram_service_rabbitmq_etc:/etc/rabbitmq/"
+      - "telegram_service_rabbitmq_data:/var/lib/rabbitmq/"
+      - "telegram_service_rabbitmq_log:/var/log/rabbitmq/"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
 volumes:
-  getaway_ws_server_mysql_database:
+  telegram_service_mysql_database:
+    driver: local
+  telegram_service_rabbitmq_etc:
+    driver: local
+  telegram_service_rabbitmq_data:
+    driver: local
+  telegram_service_rabbitmq_log:
     driver: local
