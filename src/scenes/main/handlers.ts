@@ -14,7 +14,7 @@ const enterDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
 
 const enterPromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, ctx, next }) => {
   ctx.scene.session.removeMessage = [];
-  const mainKeyboardMessage = await ctx.reply(emoji.emojify(ctx.session.i18n.__('scene_main:description')), mainKeyboard(ctx));
+  const mainKeyboardMessage = await ctx.reply(emoji.emojify(ctx.session.i18n.__(`scene_main__description`)), mainKeyboard(ctx));
   ctx.scene.session.removeMessage.push(mainKeyboardMessage.message_id);
 };
 
@@ -32,31 +32,37 @@ const messagePromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, 
     ctx.scene.session.removeMessage.push(ctx.update.message.message_id);
     if ('text' in ctx.update.message) {
       switch (ctx.update.message.text) {
-        case emoji.emojify(ctx.session.i18n.__('button:info')):
+        case emoji.emojify(ctx.session.i18n.__('button__info')):
           await ctx.scene.enter(config.TELEGRAM.SCENE.INFO, {
             ...ctx.session.__scenes.state,
             sceneHistory: [...ctx.session.__scenes.state.sceneHistory, config.TELEGRAM.SCENE.MAIN]
           });
           break;
-        case emoji.emojify(ctx.session.i18n.__('button:manage_subscription')):
+        case emoji.emojify(ctx.session.i18n.__('button__manage_subscription')):
           await ctx.scene.enter(config.TELEGRAM.SCENE.MANAGE_SUBSCRIPTION, {
             ...ctx.session.__scenes.state,
             sceneHistory: [...ctx.session.__scenes.state.sceneHistory, config.TELEGRAM.SCENE.MAIN]
           });
           break;
-        case emoji.emojify(ctx.session.i18n.__('button:manage_channel')):
+        case emoji.emojify(ctx.session.i18n.__('button__manage_channel')):
           await ctx.scene.enter(config.TELEGRAM.SCENE.MANAGE_CHANNEL, {
             ...ctx.session.__scenes.state,
             sceneHistory: [...ctx.session.__scenes.state.sceneHistory, config.TELEGRAM.SCENE.MAIN]
           });
           break;
-        case emoji.emojify(ctx.session.i18n.__(`button:back`)):
+        case emoji.emojify(ctx.session.i18n.__(`button__back`)):
           const sceneHistory = ctx.session.__scenes.state.sceneHistory;
           const backScene = sceneHistory.length > 0 ? sceneHistory[sceneHistory.length - 1] : config.TELEGRAM.SCENE.MAIN;
           const newSceneHistory = sceneHistory.length > 0 ? sceneHistory.slice(0, sceneHistory.length - 1) : [];
           await ctx.scene.enter(backScene, {
             ...ctx.session.__scenes.state,
             sceneHistory: newSceneHistory
+          });
+          break;
+        case '/language':
+          await ctx.scene.enter(config.TELEGRAM.SCENE.LANGUAGE, {
+            ...ctx.session.__scenes.state,
+            sceneHistory: [...ctx.session.__scenes.state.sceneHistory, config.TELEGRAM.SCENE.MAIN]
           });
           break;
         default:

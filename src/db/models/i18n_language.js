@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       this.hasMany(models.i18n_translation, {
         foreignKey: 'i18n_language_id'
       });
-      this.hasMany(models.telegram_user, {
+      this.hasMany(models.telegram_chat, {
         foreignKey: 'i18n_language_id'
       });
     }

@@ -51,6 +51,16 @@ telegraf.command('start', async (ctx) => {
   await ctx.deleteMessage(ctx.message.message_id);
 });
 
+telegraf.command('language', async (ctx) => {
+  if (!ctx.session.__scenes.current) {
+    ctx.scene.enter(config.TELEGRAM.SCENE.LANGUAGE, {
+      ...ctx.session.__scenes.state,
+      sceneHistory: []
+    });
+  }
+  await ctx.deleteMessage(ctx.message.message_id);
+});
+
 telegraf.on('message', async (ctx) => {
   if (!ctx.session.__scenes.current) {
     ctx.scene.enter(config.TELEGRAM.SCENE.START, {

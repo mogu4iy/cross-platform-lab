@@ -7,6 +7,7 @@ import { SceneContext } from '../../types/telegraf';
 import config from '../../config';
 import db from '../../db/models';
 import { getLibTelegramChatTypeStoreByKeys } from '../../services/libTelegramChatTypeStore';
+import Console from 'console';
 
 const enterDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
   return {};
@@ -25,14 +26,14 @@ const enterPromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, ct
     }
     userDefaults.lib_telegram_chat_type_id = chatType[0].id;
     // @ts-ignore
-    const [telegramUser, created] = await db.telegram_user.findOrCreate({
+    const [telegramUser, created] = await db.telegram_chat.findOrCreate({
       raw: true,
       logging: false,
       where: {
-        telegram_chat_id: ctx.chat.id
+        chat_id: ctx.chat.id
       },
       defaults: {
-        telegram_chat_id: ctx.chat.id,
+        chat_id: ctx.chat.id,
         lib_telegram_chat_type_id: chatType[0].id
       }
     });

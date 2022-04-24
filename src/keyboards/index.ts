@@ -20,7 +20,7 @@ export const languageKeyboard = (ctx: SceneContext) => {
   const languageList = getAllI18nLanguageStore();
   const buttonList = languageList
     .map(language => {
-      return Markup.button.callback(emoji.emojify(ctx.session.i18n.__(`scene_language:lang_${language.key}`)),
+      return Markup.button.callback(emoji.emojify(ctx.session.i18n.__(`lang_${language.key}`)),
         ACTIONS.choose_language.action({ action: language.key }),
         false);
     });

@@ -5,7 +5,7 @@ const db = require('../../db/models');
 const STORE_KEY = 'lib_telegram_chat_type';
 
 const init = async () => {
-  const recordList = await db.i18n_key.findAll({
+  const recordList = await db.lib_telegram_chat_type.findAll({
     where: {},
     include: [],
     logging: false,

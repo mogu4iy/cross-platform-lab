@@ -9,6 +9,8 @@ import {
 import { ACTIONS } from '../../actions';
 import { backKeyboard, languageKeyboard } from '../../keyboards';
 import { smthWentWrongMessage } from '../../messages';
+import { configureI18nLanguageStoreKey, i18nLanguageStore } from '../../services/i18nLanguageStore';
+import db from '../../db/models';
 
 const enterDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
   return {};
@@ -16,9 +18,9 @@ const enterDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
 
 const enterPromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, ctx, next }) => {
   ctx.scene.session.removeMessage = [];
-  const titleMessage = await ctx.reply(emoji.emojify(ctx.session.i18n.__('scene_language:title')), backKeyboard(ctx));
+  const titleMessage = await ctx.reply(emoji.emojify(ctx.session.i18n.__(`scene_language__title`)), backKeyboard(ctx));
   ctx.scene.session.removeMessage.push(titleMessage.message_id);
-  const keyboardMessage = await ctx.reply(emoji.emojify(ctx.session.i18n.__('scene_language:description')), languageKeyboard(ctx));
+  const keyboardMessage = await ctx.reply(emoji.emojify(ctx.session.i18n.__('scene_language__description')), languageKeyboard(ctx));
   ctx.scene.session.removeMessage.push(keyboardMessage.message_id);
 };
 
@@ -36,13 +38,19 @@ const messagePromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, 
     ctx.scene.session.removeMessage.push(ctx.update.message.message_id);
     if ('text' in ctx.update.message) {
       switch (ctx.update.message.text) {
-        case emoji.emojify(ctx.session.i18n.__(`button:back`)):
+        case emoji.emojify(ctx.session.i18n.__(`button__back`)):
           const sceneHistory = ctx.session.__scenes.state.sceneHistory;
           const backScene = sceneHistory.length > 0 ? sceneHistory[sceneHistory.length - 1] : config.TELEGRAM.SCENE.MAIN;
           const newSceneHistory = sceneHistory.length > 0 ? sceneHistory.slice(0, sceneHistory.length - 1) : [];
           await ctx.scene.enter(backScene, {
             ...ctx.session.__scenes.state,
             sceneHistory: newSceneHistory
+          });
+          break;
+        case '/language':
+          await ctx.scene.enter(config.TELEGRAM.SCENE.LANGUAGE, {
+            ...ctx.session.__scenes.state,
+            sceneHistory: [...ctx.session.__scenes.state.sceneHistory]
           });
           break;
         default:
@@ -91,6 +99,20 @@ const chooseLanguagePromiseHandler: TPromiseHandlerType<SceneContext> = async ({
       const langData = ACTIONS.choose_language.parse(ctxData.data);
       if ('action' in langData && langData.action) {
         ctx.session.i18n.setLocale(langData.action);
+        const language = i18nLanguageStore.get(configureI18nLanguageStoreKey(langData.action));
+        if (!language) {
+          throw new Error(`Language with key '${langData.action}' is absent.`);
+        }
+        // @ts-ignore
+        await db.telegram_chat.update({
+          i18n_language_id: language.id
+        }, {
+          raw: true,
+          logging: false,
+          where: {
+            id: ctx.session.__scenes.state.telegram_chat_id
+          }
+        });
       }
       return await ctx.scene.enter(config.TELEGRAM.SCENE.MAIN, {
         ...ctx.session.__scenes.state,

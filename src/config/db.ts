@@ -25,6 +25,13 @@ const DbConfig: IDbConfig = {
         host: process.env.DB_HOST,
         port: process.env.DB_PORT,
         dialect: process.env.DB_CONNECTION,
+        ssl: true,
+        dialectOptions: {
+            ssl: {
+                require: true,
+                rejectUnauthorized: false,
+            }
+        },
         pool: {
             max: 5,
             min: 0,
@@ -41,6 +48,13 @@ const DbConfig: IDbConfig = {
         host: process.env.DB_HOST,
         port: process.env.DB_PORT,
         dialect: process.env.DB_CONNECTION,
+        ssl: true,
+        dialectOptions: {
+            ssl: {
+                require: true,
+                rejectUnauthorized: false,
+            }
+        },
         pool: {
             max: 5,
             min: 0,
@@ -57,6 +71,13 @@ const DbConfig: IDbConfig = {
         host: process.env.DB_HOST,
         port: process.env.DB_PORT,
         dialect: process.env.DB_CONNECTION,
+        ssl: true,
+        dialectOptions: {
+            ssl: {
+                require: true,
+                rejectUnauthorized: false,
+            }
+        },
         pool: {
             max: 5,
             min: 0,
@@ -69,3 +90,4 @@ const DbConfig: IDbConfig = {
 };
 
 export default DbConfig
+module.exports = DbConfig

@@ -14,7 +14,7 @@ const enterDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
 
 const enterPromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, ctx, next }) => {
   ctx.scene.session.removeMessage = [];
-  const titleMessage = await ctx.reply(emoji.emojify(ctx.session.i18n.__('scene_info:title')), backKeyboard(ctx));
+  const titleMessage = await ctx.reply(emoji.emojify(ctx.session.i18n.__('scene_info__title')), backKeyboard(ctx));
   ctx.scene.session.removeMessage.push(titleMessage.message_id);
   // const keyboardMessage = await ctx.reply(emoji.emojify(ctx.session.i18n.__('scene_info:description')), languageKeyboard(ctx));
   // ctx.scene.session.removeMessage.push(keyboardMessage.message_id);
@@ -34,13 +34,19 @@ const messagePromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, 
     ctx.scene.session.removeMessage.push(ctx.update.message.message_id);
     if ('text' in ctx.update.message) {
       switch (ctx.update.message.text) {
-        case emoji.emojify(ctx.session.i18n.__(`button:back`)):
+        case emoji.emojify(ctx.session.i18n.__(`button__back`)):
           const sceneHistory = ctx.session.__scenes.state.sceneHistory;
           const backScene = sceneHistory.length > 0 ? sceneHistory[sceneHistory.length - 1] : config.TELEGRAM.SCENE.MAIN;
           const newSceneHistory = sceneHistory.length > 0 ? sceneHistory.slice(0, sceneHistory.length - 1) : [];
           await ctx.scene.enter(backScene, {
             ...ctx.session.__scenes.state,
             sceneHistory: newSceneHistory
+          });
+          break;
+        case '/language':
+          await ctx.scene.enter(config.TELEGRAM.SCENE.LANGUAGE, {
+            ...ctx.session.__scenes.state,
+            sceneHistory: [...ctx.session.__scenes.state.sceneHistory, config.TELEGRAM.SCENE.INFO]
           });
           break;
         default:

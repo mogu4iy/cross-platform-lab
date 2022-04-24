@@ -49,8 +49,8 @@ const getStoreByKeys = (data) => {
   store.each((value, key) => {
     if (checkStoreKey(key)) {
       let equal = true;
-      for (let dataLanguage in data) {
-        if (data[dataLanguage] !== value[dataLanguage]) {
+      for (let dataKey in data) {
+        if (data[dataKey] !== value[dataKey]) {
           equal = false;
           break;
         }
@@ -72,10 +72,10 @@ const configureStoreKey = (key) => {
   return `${STORE_KEY}:${key}`;
 };
 
-export const initI18nLanguageStore = init
-export const i18nLanguageStore = store
-export const getAllI18nLanguageStore = getAllStore
-export const configureI18nLanguageStoreKey = configureStoreKey
-export const checkI18nLanguageStoreKey = checkStoreKey
-export const getI18nLanguageStoreByKeys = getStoreByKeys
-export const getI18nLanguageById = getById
+export const initI18nLanguageStore = init;
+export const i18nLanguageStore = store;
+export const getAllI18nLanguageStore = getAllStore;
+export const configureI18nLanguageStoreKey = configureStoreKey;
+export const checkI18nLanguageStoreKey = checkStoreKey;
+export const getI18nLanguageStoreByKeys = getStoreByKeys;
+export const getI18nLanguageById = getById;

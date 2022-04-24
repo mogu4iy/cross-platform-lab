@@ -12,7 +12,7 @@ const init = async () => {
     raw: true
   });
   for (const record of recordList) {
-    const key = configureStoreKey(record['key']);
+    const key = configureStoreKey(`${record['i18n_language_id']}_${record['i18n_key_id']}`);
     let recordObj = store.get(key) ?? {};
     recordObj['value'] = record['value'];
     recordObj['i18n_key_id'] = record['i18n_key_id'];
