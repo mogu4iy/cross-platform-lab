@@ -7,6 +7,7 @@ import {
   TPromiseHandlerType
 } from '../../utils/errors';
 import { backKeyboard } from '../../keyboards';
+import Console from 'console';
 
 const enterDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
   return {};

@@ -62,6 +62,7 @@ telegraf.command('language', async (ctx) => {
 });
 
 telegraf.on('message', async (ctx) => {
+  Console.log(ctx.message)
   if (!ctx.session.__scenes.current) {
     ctx.scene.enter(config.TELEGRAM.SCENE.START, {
       ...ctx.session.__scenes.state,

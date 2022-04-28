@@ -73,6 +73,12 @@ module.exports = {
       },
       SCENE_MAIN__DESCRIPTION: {
         key: 'scene_main__description'
+      },
+      SYSTEM_MESSAGE_CHAT_TYPE_NOT_AVAILABLE: {
+        key: 'system_message__chat_type_not_available'
+      },
+      SYSTEM_MESSAGE_SMT_WENT_WRONG: {
+        key: 'system_message__smth_went_wrong'
       }
     };
     const translationKeyExistList = await queryInterface.rawSelect('i18n_key', {
@@ -246,6 +252,30 @@ module.exports = {
       i18n_language_id: languageObj.UA['id'],
       i18n_key_id: translationKeyObj.SCENE_MANAGE_CHANNEL__TITLE['id'],
       value: 'Керувати каналами :speaking_head_in_silhouette:'
+    }, {
+      i18n_language_id: languageObj.RU['id'],
+      i18n_key_id: translationKeyObj.SYSTEM_MESSAGE_CHAT_TYPE_NOT_AVAILABLE['id'],
+      value: 'Этот тип чата не поддерживается нашим ботом :blush:'
+    }, {
+      i18n_language_id: languageObj.EN['id'],
+      i18n_key_id: translationKeyObj.SYSTEM_MESSAGE_CHAT_TYPE_NOT_AVAILABLE['id'],
+      value: 'This chat type is not available for out bot :blush:'
+    }, {
+      i18n_language_id: languageObj.UA['id'],
+      i18n_key_id: translationKeyObj.SYSTEM_MESSAGE_CHAT_TYPE_NOT_AVAILABLE['id'],
+      value: 'Цей тип чату не підтримується нашим ботом :blush:'
+    }, {
+      i18n_language_id: languageObj.RU['id'],
+      i18n_key_id: translationKeyObj.SYSTEM_MESSAGE_SMT_WENT_WRONG['id'],
+      value: 'Что-то пошло не так :sob:'
+    }, {
+      i18n_language_id: languageObj.EN['id'],
+      i18n_key_id: translationKeyObj.SYSTEM_MESSAGE_SMT_WENT_WRONG['id'],
+      value: 'Something went wrong :sob:'
+    }, {
+      i18n_language_id: languageObj.UA['id'],
+      i18n_key_id: translationKeyObj.SYSTEM_MESSAGE_SMT_WENT_WRONG['id'],
+      value: 'Щось пішло не так :sob:'
     }
     ];
     const translationExistList = await queryInterface.rawSelect('i18n_translation', {

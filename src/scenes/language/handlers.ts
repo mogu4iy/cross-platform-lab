@@ -11,6 +11,7 @@ import { backKeyboard, languageKeyboard } from '../../keyboards';
 import { smthWentWrongMessage } from '../../messages';
 import { configureI18nLanguageStoreKey, i18nLanguageStore } from '../../services/i18nLanguageStore';
 import db from '../../db/models';
+import Console from 'console';
 
 const enterDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
   return {};
@@ -40,7 +41,7 @@ const messagePromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, 
       switch (ctx.update.message.text) {
         case emoji.emojify(ctx.session.i18n.__(`button__back`)):
           const sceneHistory = ctx.session.__scenes.state.sceneHistory;
-          const backScene = sceneHistory.length > 0 ? sceneHistory[sceneHistory.length - 1] : config.TELEGRAM.SCENE.MAIN;
+          const backScene = sceneHistory.length > 0 ? sceneHistory[sceneHistory.length - 1] : config.TELEGRAM.SCENE.START;
           const newSceneHistory = sceneHistory.length > 0 ? sceneHistory.slice(0, sceneHistory.length - 1) : [];
           await ctx.scene.enter(backScene, {
             ...ctx.session.__scenes.state,
@@ -93,40 +94,47 @@ const chooseLanguageDataFunction: TDataFunctionType<SceneContext> = (ctx) => {
 };
 
 const chooseLanguagePromiseHandler: TPromiseHandlerType<SceneContext> = async ({ data, ctx, next }) => {
-  if ('callbackQuery' in ctx && ctx.callbackQuery) {
-    const ctxData = ctx.callbackQuery;
-    if ('data' in ctxData && ctxData.data) {
-      const langData = ACTIONS.choose_language.parse(ctxData.data);
-      if ('action' in langData && langData.action) {
-        ctx.session.i18n.setLocale(langData.action);
-        const language = i18nLanguageStore.get(configureI18nLanguageStoreKey(langData.action));
-        if (!language) {
-          throw new Error(`Language with key '${langData.action}' is absent.`);
-        }
-        // @ts-ignore
-        await db.telegram_chat.update({
-          i18n_language_id: language.id
-        }, {
-          raw: true,
-          logging: false,
-          where: {
-            id: ctx.session.__scenes.state.telegram_chat_id
+  try {
+    if ('callbackQuery' in ctx && ctx.callbackQuery) {
+      const ctxData = ctx.callbackQuery;
+      if ('data' in ctxData && ctxData.data) {
+        const langData = ACTIONS.choose_language.parse(ctxData.data);
+        if ('action' in langData && langData.action) {
+          ctx.session.i18n.setLocale(langData.action);
+          const language = i18nLanguageStore.get(configureI18nLanguageStoreKey(langData.action));
+          if (!language) {
+            throw new Error(`Language with key '${langData.action}' is absent.`);
           }
+          // @ts-ignore
+          await db.telegram_chat.update({
+            i18n_language_id: language.id
+          }, {
+            raw: true,
+            logging: false,
+            where: {
+              id: ctx.session.__scenes.state.telegram_chat_id
+            }
+          });
+        }
+        const sceneHistory = ctx.session.__scenes.state.sceneHistory;
+        const backScene = sceneHistory.length > 0 ? sceneHistory[sceneHistory.length - 1] : config.TELEGRAM.SCENE.START;
+        const newSceneHistory = sceneHistory.length > 0 ? sceneHistory.slice(0, sceneHistory.length - 1) : [];
+        await ctx.scene.enter(backScene, {
+          ...ctx.session.__scenes.state,
+          sceneHistory: newSceneHistory
         });
       }
-      return await ctx.scene.enter(config.TELEGRAM.SCENE.MAIN, {
-        ...ctx.session.__scenes.state,
-        sceneHistory: [...ctx.session.__scenes.state.sceneHistory, config.TELEGRAM.SCENE.LANGUAGE]
-      });
     }
+  } catch (e) {
+    Console.log(e);
+    await ctx.reply(smthWentWrongMessage(ctx));
+    const sceneHistory = ctx.session.__scenes.state.sceneHistory;
+    const backScene = sceneHistory.length > 0 ? sceneHistory[sceneHistory.length - 1] : config.TELEGRAM.SCENE.START;
+    const newSceneHistory = sceneHistory.length > 0 ? sceneHistory.slice(sceneHistory.length - 1) : [];
+    return await ctx.scene.enter(backScene, {
+      sceneHistory: newSceneHistory
+    });
   }
-  await ctx.reply(smthWentWrongMessage(ctx));
-  const sceneHistory = ctx.session.__scenes.state.sceneHistory;
-  const backScene = sceneHistory.length > 0 ? sceneHistory[sceneHistory.length - 1] : config.TELEGRAM.SCENE.MAIN;
-  const newSceneHistory = sceneHistory.length > 0 ? sceneHistory.slice(sceneHistory.length - 1) : [];
-  return await ctx.scene.enter(backScene, {
-    sceneHistory: newSceneHistory
-  });
 };
 
 export const chooseLanguageController = handlerWrapper({
